@@ -1,4 +1,4 @@
-# $Id: LazyInflate.pm 3 2005-02-22 01:38:39Z daisuke $
+# $Id: LazyInflate.pm 5 2005-02-25 07:54:31Z daisuke $
 #
 # Daisuke Maki <dmaki@cpan.org>
 # All rights reserved.
@@ -7,7 +7,7 @@ package Class::DBI::LazyInflate;
 use strict;
 use Data::Lazy;
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 sub import
 {
@@ -23,10 +23,11 @@ sub has_lazy
 {
     my($class, $column, $colclass, %args) = @_;
 
-    my $inflate = delete $args{inflate};
+    my $inflate      = $args{inflate} || 
+        ($colclass->isa('Class::DBI') ? '_simple_bless' : 'new');
     my $lazy_inflate = sub {
         my $value = shift;
-        tie $value, 'Data::Lazy', sub { $inflate->($value) }, LAZY_STOREVALUE;
+        tie $value, 'Data::Lazy', sub { ref($inflate) eq 'CODE' ? $inflate->($value) : $colclass->$inflate($value) }, LAZY_STOREVALUE;
         $value;
     };
     $class->has_a(
@@ -52,7 +53,7 @@ Class::DBI::LazyInflate - Defer Inflating Of Columns Until They Are Used
   use DateTime::Format::MySQL;
 
   __PACKAGE__->has_lazy(
-    'lastmod',
+    'lastmod', 'DateTime',
     inflate => sub { DateTime::Format::MySQL->parse_datetime(shift) },
     deflate => sub { DateTime::Format::MySQL->format_datetime(shift) },
   );
@@ -61,6 +62,9 @@ Class::DBI::LazyInflate - Defer Inflating Of Columns Until They Are Used
   $obj->lastmod()->year();          # now it is.
 
   $obj->lastmod(DateTime->now());
+
+  # Specify another Class::DBI type as a column:
+  __PACKAGE__->has_lazy(cdbi_field => 'MyData');
 
 =head1 DESCRIPTION
 
@@ -80,7 +84,10 @@ until when you really need it
 
 has_lazy() declares that column is to be inflated lazily, and is installed
 to the calling package's namespace upon call to "use Class::DBI::LazyInflate".
-The arguments are exactly the same has has_a().
+The arguments are exactly the same as has_a().
+
+If inflate is not specified, it will lazily perform the default inflate
+procedure that Class::DBI uses.
 
 =head1 AUTHOR
 
