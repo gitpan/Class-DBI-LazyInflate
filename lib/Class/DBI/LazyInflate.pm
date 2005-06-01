@@ -1,4 +1,4 @@
-# $Id: LazyInflate.pm 5 2005-02-25 07:54:31Z daisuke $
+# $Id: LazyInflate.pm 7 2005-06-01 06:36:24Z daisuke $
 #
 # Daisuke Maki <dmaki@cpan.org>
 # All rights reserved.
@@ -7,7 +7,7 @@ package Class::DBI::LazyInflate;
 use strict;
 use Data::Lazy;
 use vars qw($VERSION);
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 sub import
 {
@@ -15,11 +15,15 @@ sub import
     my($caller) = caller();
     {
         no strict 'refs';
-        *{ "${caller}::has_lazy" } = \&has_lazy;
+        *{ "${caller}::has_lazy" } =
+            $Class::DBI::VERSION >= 0.96 ?
+            \&has_lazy_new
+            \&has_lazy_old;
     }
 }
 
-sub has_lazy
+# 0.96 and up
+sub has_lazy_new
 {
     my($class, $column, $colclass, %args) = @_;
 
@@ -27,7 +31,36 @@ sub has_lazy
         ($colclass->isa('Class::DBI') ? '_simple_bless' : 'new');
     my $lazy_inflate = sub {
         my $value = shift;
-        tie $value, 'Data::Lazy', sub { ref($inflate) eq 'CODE' ? $inflate->($value) : $colclass->$inflate($value) }, LAZY_STOREVALUE;
+        my $self  = shift;
+
+        tie $value, 'Data::Lazy',
+            sub {
+                ref($inflate) eq 'CODE' ?
+                    $inflate->($value, $self) :
+                    $colclass->$inflate($value, $self) },
+            LAZY_STOREVALUE;
+        $value;
+    };
+    $class->has_a(
+        $column, $colclass,
+        inflate => $lazy_inflate, deflate => $args{deflate}
+    );
+}
+sub has_lazy_old
+{
+    my($class, $column, $colclass, %args) = @_;
+
+    my $inflate      = $args{inflate} || 
+        ($colclass->isa('Class::DBI') ? '_simple_bless' : 'new');
+    my $lazy_inflate = sub {
+        my $value = shift;
+
+        tie $value, 'Data::Lazy',
+            sub {
+                ref($inflate) eq 'CODE' ?
+                    $inflate->($value) :
+                    $colclass->$inflate($value) },
+            LAZY_STOREVALUE;
         $value;
     };
     $class->has_a(
