@@ -1,6 +1,6 @@
---- #YAML:1.0
+---
 name: Class-DBI-LazyInflate
-version: 0.03
+version: 0.04
 author:
   - Daisuke Maki E<lt>dmaki@cpan.orgE<gt>
 abstract: Defer Inflating Of Columns Until They Are Used
@@ -11,5 +11,5 @@ requires:
 provides:
   Class::DBI::LazyInflate:
     file: lib/Class/DBI/LazyInflate.pm
-    version: 0.03
-generated_by: Module::Build version 0.25
+    version: 0.04
+generated_by: Module::Build version 0.2611

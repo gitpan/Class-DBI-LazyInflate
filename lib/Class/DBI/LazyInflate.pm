@@ -7,17 +7,19 @@ package Class::DBI::LazyInflate;
 use strict;
 use Data::Lazy;
 use vars qw($VERSION);
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 sub import
 {
     my $class = shift;
     my($caller) = caller();
     {
+        require Class::DBI;
+
         no strict 'refs';
         *{ "${caller}::has_lazy" } =
             $Class::DBI::VERSION >= 0.96 ?
-            \&has_lazy_new
+            \&has_lazy_new :
             \&has_lazy_old;
     }
 }
@@ -109,7 +111,7 @@ it is inflated only when the column is actually used.
 As seen in the SYNOPSIS section, one application of this class is for columns
 that inflate to objects that are costly to create, such as DateTime.
 Class::DBI::LazyInflate allows you defer materialization of such objects
-until when you really need it
+until when you really need it.
 
 =head1 METHODS
 

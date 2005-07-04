@@ -2,13 +2,13 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
+          'PL_FILES' => {},
+          'INSTALLDIRS' => 'site',
           'NAME' => 'Class::DBI::LazyInflate',
           'VERSION_FROM' => 'lib/Class/DBI/LazyInflate.pm',
           'PREREQ_PM' => {
-                           'Class::DBI' => '0',
-                           'Data::Lazy' => '0'
-                         },
-          'INSTALLDIRS' => 'site',
-          'PL_FILES' => {}
+                           'Data::Lazy' => 0,
+                           'Class::DBI' => 0
+                         }
         )
 ;

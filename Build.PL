@@ -30,7 +30,6 @@ my $build = $class->new(
         'Data::Lazy' => 0
     },
     license => 'perl',
-    sign => 1,
     create_makefile_pl => 'traditional',
 );
 
