@@ -1,6 +1,9 @@
 Changes
 =======
 
+0.05 - 26 Jul 2005
+  - Things could have been a lot simpler. Refactor.
+
 0.04 - 04 Jul 2005
   - Fix stupid typo.
   - Make sure to load Class::DBI (we get confused in some corner cases)

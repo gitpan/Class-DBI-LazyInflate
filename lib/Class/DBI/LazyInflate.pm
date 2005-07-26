@@ -1,69 +1,44 @@
 # $Id: LazyInflate.pm 7 2005-06-01 06:36:24Z daisuke $
 #
-# Daisuke Maki <dmaki@cpan.org>
+# Copyright (c) 2004-2005 Daisuke Maki <dmaki@cpan.org>
 # All rights reserved.
 
 package Class::DBI::LazyInflate;
 use strict;
+use Class::DBI;
 use Data::Lazy;
 use vars qw($VERSION);
-$VERSION = '0.04';
+
+BEGIN
+{
+    $VERSION = '0.05';
+}
 
 sub import
 {
     my $class = shift;
     my($caller) = caller();
     {
-        require Class::DBI;
-
         no strict 'refs';
-        *{ "${caller}::has_lazy" } =
-            $Class::DBI::VERSION >= 0.96 ?
-            \&has_lazy_new :
-            \&has_lazy_old;
+        *{ "${caller}::has_lazy" } = \&has_lazy;
     }
 }
 
-# 0.96 and up
-sub has_lazy_new
+sub has_lazy
 {
     my($class, $column, $colclass, %args) = @_;
 
     my $inflate      = $args{inflate} || 
         ($colclass->isa('Class::DBI') ? '_simple_bless' : 'new');
     my $lazy_inflate = sub {
-        my $value = shift;
-        my $self  = shift;
-
-        tie $value, 'Data::Lazy',
+        my @args = @_;
+        tie $_[0], 'Data::Lazy',
             sub {
                 ref($inflate) eq 'CODE' ?
-                    $inflate->($value, $self) :
-                    $colclass->$inflate($value, $self) },
+                    $inflate->(@args) :
+                    $colclass->$inflate(@args) },
             LAZY_STOREVALUE;
-        $value;
-    };
-    $class->has_a(
-        $column, $colclass,
-        inflate => $lazy_inflate, deflate => $args{deflate}
-    );
-}
-sub has_lazy_old
-{
-    my($class, $column, $colclass, %args) = @_;
-
-    my $inflate      = $args{inflate} || 
-        ($colclass->isa('Class::DBI') ? '_simple_bless' : 'new');
-    my $lazy_inflate = sub {
-        my $value = shift;
-
-        tie $value, 'Data::Lazy',
-            sub {
-                ref($inflate) eq 'CODE' ?
-                    $inflate->($value) :
-                    $colclass->$inflate($value) },
-            LAZY_STOREVALUE;
-        $value;
+        $_[0];
     };
     $class->has_a(
         $column, $colclass,
@@ -126,12 +101,13 @@ procedure that Class::DBI uses.
 
 =head1 AUTHOR
 
-Daisuke Maki E<lt>dmaki@cpan.orgE<gt>
+Copyright (c) 2004-2005 Daisuke Maki E<lt>dmaki@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
 L<Class::DBI|Class::DBI>
 L<Data::Lazy|Data::Lazy>
 
+For DateTime objects, you may also be interested in DateTime::LazyInit.
 
 =cut
