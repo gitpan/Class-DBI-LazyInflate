@@ -1,6 +1,11 @@
 Changes
 =======
 
+0.06 - 18 Oct 2005
+  - No code change
+  - Added POD tests
+  - Added create_readme
+
 0.05 - 26 Jul 2005
   - Things could have been a lot simpler. Refactor.
 

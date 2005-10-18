@@ -6,3 +6,4 @@ t/01-sanity.t
 t/02-inflate.t
 META.yml
 Makefile.PL
+README
